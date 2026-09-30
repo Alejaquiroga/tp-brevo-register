@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Mail\WelcomeUserMail;
+use App\Jobs\SendWelcomeEmailJob;
 
 class RegisterController extends Controller
 {
@@ -34,8 +35,8 @@ class RegisterController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // 3. Enviar correo de bienvenida mediante Brevo SMTP
-        Mail::to($user->email)->send(new WelcomeUserMail($validated));
+        // Tras crear el usuario en la BD, despachamos el Job dedicado:
+        SendWelcomeEmailJob::dispatch($user);
 
         // 4. Retornar respuesta exitosa
         return back()->with('success', '¡Usuario registrado con éxito! Correo de bienvenida enviado.');
